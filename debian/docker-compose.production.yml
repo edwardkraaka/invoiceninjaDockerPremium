@@ -1,3 +1,5 @@
+version: '3.8'
+
 x-logging: &default-logging
   options:
     max-size: "10m"
@@ -11,13 +13,12 @@ services:
     image: invoiceninja/invoiceninja-debian:${TAG:-latest}
     restart: unless-stopped
     env_file:
-      - ./.env
+      - ./.env.production
+    ports:
+      - "9000:9000"  # Expose PHP-FPM for NPM to connect
     volumes:
-      - ./.env:/var/www/html/.env
+      - ./.env.production:/var/www/html/.env
       - ./mysql/client.cnf:/etc/mysql/conf.d/client.cnf:ro
-      # - ./php/php.ini:/usr/local/etc/php/conf.d/invoiceninja.ini:ro
-      # - ./php/php-fpm.conf:/usr/local/etc/php-fpm.d/invoiceninja.conf:ro
-      # - ./supervisor/supervisord.conf:/etc/supervisor/conf.d/supervisord.conf:ro
       - app_public:/var/www/html/public
       - app_storage:/var/www/html/storage
     networks:
@@ -29,26 +30,11 @@ services:
         condition: service_healthy
     logging: *default-logging
 
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-    volumes:
-      - ./nginx:/etc/nginx/conf.d:ro
-      - app_public:/var/www/html/public:ro
-      - app_storage:/var/www/html/storage:ro
-    networks:
-      - app-network
-    depends_on:
-      - app
-    logging: *default-logging
-
   mysql:
     image: mysql:8
     restart: unless-stopped
     env_file:
-      - ./.env
+      - ./.env.production
     environment:
       MYSQL_DATABASE: ${DB_DATABASE}
       MYSQL_USER: ${DB_USERNAME}
@@ -58,6 +44,7 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - app-network
+    # No ports exposed - internal only
     healthcheck:
       test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u${MYSQL_USER}", "-p${MYSQL_PASSWORD}" ]
       interval: 10s
@@ -72,6 +59,7 @@ services:
       - redis_data:/data
     networks:
       - app-network
+    # No ports exposed - internal only
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s

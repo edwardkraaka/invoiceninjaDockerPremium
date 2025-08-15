@@ -1,0 +1,25 @@
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Backup directories (created by scripts)
+backups/
+*.backup
+*.original
+
+# Docker volumes (if mounted locally)
+app_public/
+app_storage/
+mysql_data/
+redis_data/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Note: .env files are intentionally NOT ignored
+# as requested by the repository owner

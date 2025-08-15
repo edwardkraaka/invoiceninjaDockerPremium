@@ -1,0 +1,5 @@
+[client]
+ssl=0
+
+[mysql]
+ssl=0
